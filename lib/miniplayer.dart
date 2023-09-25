@@ -52,6 +52,8 @@ class Miniplayer extends StatefulWidget {
   ///Collapse by tapping anywhere in the miniplayer.
   final bool tapToCollapse;
 
+  final bool isIgnoring;
+
   ///Used to set the color of the background box shadow
   final Color backgroundBoxShadow;
 
@@ -70,6 +72,7 @@ class Miniplayer extends StatefulWidget {
     this.controller,
     this.backgroundBoxShadow = Colors.black45,
     this.tapToCollapse = true,
+    this.isIgnoring = false,
   }) : super(key: key);
 
   @override
@@ -215,7 +218,7 @@ class _MiniplayerState extends State<Miniplayer> with TickerProviderStateMixin {
                         ),
                       ),
                     ),
-                    onTap: () => _dragHeight == widget.maxHeight && !widget.tapToCollapse
+                    onTap: widget.isIgnoring ? null : () => _dragHeight == widget.maxHeight && !widget.tapToCollapse
                         ? null
                         : _snapToPosition(_dragHeight != widget.maxHeight ? PanelState.MAX : PanelState.MIN),
                     onPanStart: (details) {
@@ -226,7 +229,7 @@ class _MiniplayerState extends State<Miniplayer> with TickerProviderStateMixin {
                         _resetAnimationController();
                       }
                     },
-                    onPanEnd: (details) async {
+                    onPanEnd: widget.isIgnoring ? null : (details) async {
                       ///Calculates drag speed
                       double speed = (_dragHeight - _startHeight * _dragHeight < _startHeight ? 1 : -1) / updateCount * 100;
 
@@ -273,7 +276,7 @@ class _MiniplayerState extends State<Miniplayer> with TickerProviderStateMixin {
                       ///Snap to position
                       _snapToPosition(snap);
                     },
-                    onPanUpdate: (details) {
+                    onPanUpdate: widget.isIgnoring ? null : (details) {
                       if (dismissed) return;
 
                       _dragHeight -= details.delta.dy;
