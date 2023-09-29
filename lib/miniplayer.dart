@@ -177,7 +177,6 @@ class _MiniplayerState extends State<Miniplayer> with TickerProviderStateMixin {
         valueListenable: heightNotifier,
         builder: (BuildContext context, double height, Widget? _) {
           var _percentage = ((height - widget.minHeight)) / (widget.maxHeight - widget.minHeight);
-
           return Stack(
             alignment: Alignment.bottomCenter,
             children: [
@@ -218,72 +217,78 @@ class _MiniplayerState extends State<Miniplayer> with TickerProviderStateMixin {
                         ),
                       ),
                     ),
-                    onTap: widget.isIgnoring ? null : () => _dragHeight == widget.maxHeight && !widget.tapToCollapse
+                    onTap: widget.isIgnoring || (_dragHeight == widget.maxHeight && !widget.tapToCollapse)
                         ? null
-                        : _snapToPosition(_dragHeight != widget.maxHeight ? PanelState.MAX : PanelState.MIN),
-                    onPanStart: (details) {
-                      _startHeight = _dragHeight;
-                      updateCount = 0;
+                        : () => _snapToPosition(_dragHeight != widget.maxHeight ? PanelState.MAX : PanelState.MIN),
+                    onVerticalDragStart: widget.isIgnoring
+                        ? null
+                        : (details) {
+                            _startHeight = _dragHeight;
+                            updateCount = 0;
 
-                      if (animating) {
-                        _resetAnimationController();
-                      }
-                    },
-                    onPanEnd: widget.isIgnoring ? null : (details) async {
-                      ///Calculates drag speed
-                      double speed = (_dragHeight - _startHeight * _dragHeight < _startHeight ? 1 : -1) / updateCount * 100;
+                            if (animating) {
+                              _resetAnimationController();
+                            }
+                          },
+                    onVerticalDragEnd: widget.isIgnoring
+                        ? null
+                        : (details) async {
+                            ///Calculates drag speed
+                            double speed = (_dragHeight - _startHeight * _dragHeight < _startHeight ? 1 : -1) / updateCount * 100;
 
-                      ///Define the percentage distance depending on the speed with which the widget should snap
-                      double snapPercentage = 0.005;
-                      if (speed <= 4) {
-                        snapPercentage = 0.2;
-                      } else if (speed <= 9) {
-                        snapPercentage = 0.08;
-                      } else if (speed <= 50) {
-                        snapPercentage = 0.01;
-                      }
+                            ///Define the percentage distance depending on the speed with which the widget should snap
+                            double snapPercentage = 0.005;
+                            if (speed <= 4) {
+                              snapPercentage = 0.2;
+                            } else if (speed <= 9) {
+                              snapPercentage = 0.08;
+                            } else if (speed <= 50) {
+                              snapPercentage = 0.01;
+                            }
 
-                      ///Determine to which SnapPosition the widget should snap
-                      PanelState snap = PanelState.MIN;
+                            ///Determine to which SnapPosition the widget should snap
+                            PanelState snap = PanelState.MIN;
 
-                      final _percentageMax = percentageFromValueInRange(min: widget.minHeight, max: widget.maxHeight, value: _dragHeight);
+                            final _percentageMax = percentageFromValueInRange(min: widget.minHeight, max: widget.maxHeight, value: _dragHeight);
 
-                      ///Started from expanded state
-                      if (_startHeight > widget.minHeight) {
-                        if (_percentageMax > 1 - snapPercentage) {
-                          snap = PanelState.MAX;
-                        }
-                      }
+                            ///Started from expanded state
+                            if (_startHeight > widget.minHeight) {
+                              if (_percentageMax > 1 - snapPercentage) {
+                                snap = PanelState.MAX;
+                              }
+                            }
 
-                      ///Started from minified state
-                      else {
-                        if (_percentageMax > snapPercentage) {
-                          snap = PanelState.MAX;
-                        }
+                            ///Started from minified state
+                            else {
+                              if (_percentageMax > snapPercentage) {
+                                snap = PanelState.MAX;
+                              }
 
-                        ///DismissedPercentage > 0.2 -> dismiss
-                        else if (onDismissed != null &&
-                            percentageFromValueInRange(
-                                  min: widget.minHeight,
-                                  max: 0,
-                                  value: _dragHeight,
-                                ) >
-                                snapPercentage) {
-                          snap = PanelState.DISMISS;
-                        }
-                      }
+                              ///DismissedPercentage > 0.2 -> dismiss
+                              else if (onDismissed != null &&
+                                  percentageFromValueInRange(
+                                        min: widget.minHeight,
+                                        max: 0,
+                                        value: _dragHeight,
+                                      ) >
+                                      snapPercentage) {
+                                snap = PanelState.DISMISS;
+                              }
+                            }
 
-                      ///Snap to position
-                      _snapToPosition(snap);
-                    },
-                    onPanUpdate: widget.isIgnoring ? null : (details) {
-                      if (dismissed) return;
+                            ///Snap to position
+                            _snapToPosition(snap);
+                          },
+                    onVerticalDragUpdate: widget.isIgnoring
+                        ? null
+                        : (details) {
+                            if (dismissed) return;
 
-                      _dragHeight -= details.delta.dy;
-                      updateCount++;
+                            _dragHeight -= details.delta.dy;
+                            updateCount++;
 
-                      _handleHeightChange();
-                    },
+                            _handleHeightChange();
+                          },
                   ),
                 ),
               ),
