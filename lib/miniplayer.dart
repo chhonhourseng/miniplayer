@@ -46,6 +46,8 @@ class Miniplayer extends StatefulWidget {
   ///If onDismissed is set, the miniplayer can be dismissed
   final Function? onDismissed;
 
+  final GestureTapCallback? onBack;
+
   //Allows you to manually control the miniplayer in code
   final MiniplayerController? controller;
 
@@ -168,7 +170,11 @@ class _MiniplayerState extends State<Miniplayer> with TickerProviderStateMixin {
     return MiniplayerWillPopScope(
       onWillPop: () async {
         if (heightNotifier.value > widget.minHeight) {
-          _snapToPosition(PanelState.MIN);
+          if (widget.onBack != null) {
+            widget.onBack!.call();
+          } else {
+            _snapToPosition(PanelState.MIN);
+          }
           return false;
         }
         return true;
