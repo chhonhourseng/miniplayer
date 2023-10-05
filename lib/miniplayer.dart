@@ -71,6 +71,7 @@ class Miniplayer extends StatefulWidget {
     this.duration = const Duration(milliseconds: 300),
     this.onDismiss,
     this.onDismissed,
+    this.onBack,
     this.controller,
     this.backgroundBoxShadow = Colors.black45,
     this.tapToCollapse = true,
